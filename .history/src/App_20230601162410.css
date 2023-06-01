@@ -63,7 +63,6 @@ header {
   align-items: center
 }
 
-/* In order to override the ThirdWeb styles on the wallet button you must include  `!important` after any rule here */
 .wallet-connect {
   background-color: rgb(28, 28, 31, 75%) !important;
   color: #fff !important;
@@ -118,7 +117,7 @@ img {
   }
 
   .button-div {
-    top: 7rem;
+    top: 120px;
   }
 }
 
@@ -129,6 +128,6 @@ img {
   }
 
   .button-div {
-    top: 11rem;
+    top: 180px;
   }
 }
