@@ -114,7 +114,6 @@ const Header = () => {
 
             setWalletData(walletData);
             setConnected(true);
-            setBalance(userBalance); // Set the balance here
 
             window.ethereum.on('accountsChanged', accounts => {
                 const newWalletData = { ...walletData, accounts: accounts };
@@ -127,7 +126,6 @@ const Header = () => {
     const disconnectWallet = () => {
         setWalletData(null);
         setConnected(false);
-        setBalance(null); // Reset balance to null when disconnected
     }
 
     const getETHBalance = async (signer) => {
@@ -142,12 +140,12 @@ const Header = () => {
             ) : (
                 <button onClick={connectWallet}>Connect Wallet</button>
             )}
-            {connected ? <div>Connected to {network && network.name}</div> : <div>No Network Connected</div>}
+            <div>Connected to {network && network.name}</div>
             <div>Wallet: {walletData?.userAddress || 'No Wallet Connected!'}</div>
             <div>Balance: {balance || 'Loading...'}</div>
         </header>
     );
-    
 };
 
 export default Header;
+

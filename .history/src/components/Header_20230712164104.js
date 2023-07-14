@@ -80,14 +80,17 @@
 // 
 // export default Header
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 
 const Header = () => {
     const [walletData, setWalletData] = useState(null);
     const [network, setNetwork] = useState(null);
     const [balance, setBalance] = useState(null);
-    const [connected, setConnected] = useState(false);
+
+    useEffect(() => {
+        connectWallet();
+    }, []);
 
     const connectWallet = async () => {
         if (window.ethereum && window.ethereum.isMetaMask) {
@@ -111,10 +114,8 @@ const Header = () => {
                 userAddress: userAddress,
                 userBalance: userBalance
             };
-
+            
             setWalletData(walletData);
-            setConnected(true);
-            setBalance(userBalance); // Set the balance here
 
             window.ethereum.on('accountsChanged', accounts => {
                 const newWalletData = { ...walletData, accounts: accounts };
@@ -124,12 +125,6 @@ const Header = () => {
         }
     }
 
-    const disconnectWallet = () => {
-        setWalletData(null);
-        setConnected(false);
-        setBalance(null); // Reset balance to null when disconnected
-    }
-
     const getETHBalance = async (signer) => {
         const userBalance = ethers.utils.formatEther(await signer.getBalance());
         return userBalance;
@@ -137,17 +132,13 @@ const Header = () => {
 
     return (
         <header className="header-grid">
-            {connected ? (
-                <button onClick={disconnectWallet}>Disconnect Wallet</button>
-            ) : (
-                <button onClick={connectWallet}>Connect Wallet</button>
-            )}
-            {connected ? <div>Connected to {network && network.name}</div> : <div>No Network Connected</div>}
+            <button onClick={connectWallet}>Connect Wallet</button>
+            <div>Connected to {network && network.name}</div>
             <div>Wallet: {walletData?.userAddress || 'No Wallet Connected!'}</div>
             <div>Balance: {balance || 'Loading...'}</div>
         </header>
     );
-    
 };
 
 export default Header;
+

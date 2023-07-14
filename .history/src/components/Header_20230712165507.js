@@ -142,7 +142,7 @@ const Header = () => {
             ) : (
                 <button onClick={connectWallet}>Connect Wallet</button>
             )}
-            {connected ? <div>Connected to {network && network.name}</div> : <div>No Network Connected</div>}
+            {connected ? <div>Connected to {network && network.name}</div> : null}
             <div>Wallet: {walletData?.userAddress || 'No Wallet Connected!'}</div>
             <div>Balance: {balance || 'Loading...'}</div>
         </header>

@@ -16,7 +16,7 @@
 
 //     // Use the useConnectionStatus hook to get the status of the connection to the blockchain
 //     const status = useConnectionStatus();
-
+    
 //     // Use the useBalance hook to get the balance of the native token for the connected wallet
 //     const { data, isLoading } = useBalance(NATIVE_TOKEN_ADDRESS);
 
@@ -54,8 +54,8 @@
 //         // If the chain is not supported, show an unsupported network message
 //         return <p> Connected to an unsupported network </p>;
 //     }
-
-
+    
+    
 //     return (
 //         <header className="header-grid">
 //             <div>
@@ -77,77 +77,58 @@
 //         </header>
 //     )
 // }
-// 
-// export default Header
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 
 const Header = () => {
-    const [walletData, setWalletData] = useState(null);
-    const [network, setNetwork] = useState(null);
-    const [balance, setBalance] = useState(null);
-    const [connected, setConnected] = useState(false);
+  const [address, setAddress] = useState(null);
+  const [balance, setBalance] = useState(null);
+  const [network, setNetwork] = useState(null);
+  const [provider, setProvider] = useState(null);
 
-    const connectWallet = async () => {
-        if (window.ethereum && window.ethereum.isMetaMask) {
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            provider.getNetwork().then(network => setNetwork(network));
-            const accounts = await provider.send("eth_requestAccounts");
-
-            if (accounts.length === 0) {
-                alert("No accounts detected");
-                return null;
-            }
-
-            const signer = provider.getSigner();
-            const userAddress = await signer.getAddress();
-            const userBalance = await getETHBalance(signer);
-
-            const walletData = {
-                provider: provider,
-                accounts: accounts,
-                signer: signer,
-                userAddress: userAddress,
-                userBalance: userBalance
-            };
-
-            setWalletData(walletData);
-            setConnected(true);
-            setBalance(userBalance); // Set the balance here
-
-            window.ethereum.on('accountsChanged', accounts => {
-                const newWalletData = { ...walletData, accounts: accounts };
-                setWalletData(newWalletData);
-                getETHBalance(newWalletData.signer).then(setBalance);
-            });
-        }
+  useEffect(() => {
+    if (window.ethereum) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      setProvider(provider);
+      provider.getNetwork().then(network => setNetwork(network));
+      window.ethereum.on('accountsChanged', accounts => {
+        setAddress(accounts[0]);
+        provider.getBalance(accounts[0]).then(balance => {
+          setBalance(ethers.utils.formatEther(balance));
+        });
+      });
     }
+  }, []);
 
-    const disconnectWallet = () => {
-        setWalletData(null);
-        setConnected(false);
-        setBalance(null); // Reset balance to null when disconnected
+  const connectWallet = async () => {
+    if (window.ethereum) {
+      try {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const accounts = await provider.listAccounts();
+        setAddress(accounts[0]);
+        const balance = await provider.getBalance(accounts[0]);
+        setBalance(ethers.utils.formatEther(balance));
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      console.log('Please install MetaMask!');
     }
+  };
 
-    const getETHBalance = async (signer) => {
-        const userBalance = ethers.utils.formatEther(await signer.getBalance());
-        return userBalance;
-    }
-
-    return (
-        <header className="header-grid">
-            {connected ? (
-                <button onClick={disconnectWallet}>Disconnect Wallet</button>
-            ) : (
-                <button onClick={connectWallet}>Connect Wallet</button>
-            )}
-            {connected ? <div>Connected to {network && network.name}</div> : <div>No Network Connected</div>}
-            <div>Wallet: {walletData?.userAddress || 'No Wallet Connected!'}</div>
-            <div>Balance: {balance || 'Loading...'}</div>
-        </header>
-    );
-    
+  return (
+    <header className="header-grid">
+      <button onClick={connectWallet}>Connect Wallet</button>
+      <div>Connected to {network && network.name}</div>
+      <div>Wallet: {address || 'No Wallet Connected!'}</div>
+      <div>Balance: {balance || 'Loading...'}</div>
+    </header>
+  );
 };
 
 export default Header;
+
+
+
+export default Header

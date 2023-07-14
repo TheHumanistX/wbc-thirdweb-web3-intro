@@ -73,68 +73,26 @@ const NFTData = () => {
   const [totalSupply, setTotalSupply] = useState(0);
   const nftsPerPage = 250;
   const contractAddress = '0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D';
-
-  const fetchMetadata = async (tokenUri) => {
-    if (tokenUri.startsWith('ipfs://')) {
-        tokenUri = tokenUri.replace('ipfs://', 'https://ipfs.io/ipfs/');
-        console.log('fetchMetadata tokenUri: ', tokenUri)
-    }
-    try {
-      const response = await fetch(tokenUri);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const metadata = await response.json();
-
-      if (metadata.image && metadata.image.startsWith('ipfs://')) {
-        metadata.image = metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/');
-      }
-
-      return metadata;
-    } catch (error) {
-      console.error(`Failed to fetch tokenUri ${tokenUri}: ${error}`);
-      return null;
-    }
-  };
   
   useEffect(() => {
     console.log('Entered useEffect...')
-  
-    const fetchNFTData = async (tokenId, contract) => {
-      try {
-        const tokenURI = await contract.tokenURI(tokenId);
-        const owner = await contract.ownerOf(tokenId);
-        const metadata = await fetchMetadata(tokenURI);
-        if (metadata === null) {
-          return null;
-        }
-        return { ...metadata, owner };
-      } catch (error) {
-        console.error(`Error fetching NFT with token ID ${tokenId}: ${error}`);
-        return null;
-      }
-    };
-  
     const fetchNFTs = async () => {
       if (window.ethereum) {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const contract = new ethers.Contract(contractAddress, ABI, provider);
         let nftsData = [];
-  
+
         try {
+            console.log('Entered try block...')
           const totalSupply = await contract.totalSupply();
-          setTotalSupply(totalSupply.toNumber());
-          console.log('Total supply: ', totalSupply.toNumber());
-  
-          const promises = [];
-  
+          setTotalSupply(totalSupply);
+          console.log('Total supply: ', totalSupply);
           for (let i = currentPage * nftsPerPage; i < (currentPage + 1) * nftsPerPage && i < totalSupply; i++) {
-            promises.push(fetchNFTData(i, contract));
+            const tokenURI = await contract.tokenURI(i);
+            const owner = await contract.ownerOf(i);
+            // Fetch metadata from tokenURI...
+            // nftsData.push({ ...metadata, owner });
           }
-  
-          const results = await Promise.all(promises);
-          nftsData = results.filter(result => result !== null);
-  
           setNfts(nftsData);
         } catch (error) {
           console.error("Error fetching NFTs: ", error);
@@ -143,10 +101,9 @@ const NFTData = () => {
         console.log('Please install MetaMask!');
       }
     };
-  
+    
     fetchNFTs();
   }, [currentPage]);
-  
 
   const handleNext = () => {
     if (currentPage < Math.floor(totalSupply / nftsPerPage)) {
@@ -177,8 +134,7 @@ const NFTData = () => {
           <div className='nft-flex' key={index}>
             <img src={nft.image} alt={nft.name} />
             <h3>{nft.name}</h3>
-            <p>Owner: </p>
-            <p>{nft.owner}</p>
+            <p>Owner: {nft.owner}</p>
           </div>
         ))}
       </div>
@@ -187,4 +143,3 @@ const NFTData = () => {
 };
 
 export default NFTData;
-

@@ -177,8 +177,7 @@ const NFTData = () => {
           <div className='nft-flex' key={index}>
             <img src={nft.image} alt={nft.name} />
             <h3>{nft.name}</h3>
-            <p>Owner: </p>
-            <p>{nft.owner}</p>
+            <p>Owner: {nft.owner}</p>
           </div>
         ))}
       </div>
